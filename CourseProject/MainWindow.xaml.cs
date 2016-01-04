@@ -35,7 +35,7 @@ namespace CourseProject
             var index = _graph.GetNum(p);
 
             if (RbAddEdge.IsChecked.Value) 
-                if ((index != _moveIndex) && (index != -1) && (_moveIndex != -1) && (_graph.AddEdge(new Edge(_graph.Nodes[index].Id, _graph.Nodes[_moveIndex].Id, CanvasForm.Children.Count, Convert.ToInt32(LChannelWeight.Content), Convert.ToInt32(LChannelCapacity.Content)))))
+                if ((index != _moveIndex) && (index != -1) && (_moveIndex != -1) && (_graph.AddEdge(new Edge(_graph.Nodes[index].Id, _graph.Nodes[_moveIndex].Id, CanvasForm.Children.Count, Convert.ToInt32(LChannelWeightValue.Content), Convert.ToInt32(LChannelCapacityValue.Content)))))
                 {
                     var line = new Line
                     {
@@ -291,37 +291,37 @@ namespace CourseProject
         private void BRandomLChannelWeight_Click(object sender, RoutedEventArgs e)
         {
             var random = new Random();
-            LChannelWeight.Content = random.Next(1, 100);
+            LChannelWeightValue.Content = random.Next(1, 100);
         }
 
         private void BRandomLChannelCapacity_Click(object sender, RoutedEventArgs e)
         {
             var random = new Random();
-            LChannelCapacity.Content = random.Next(1, 100);
+            LChannelCapacityValue.Content = random.Next(1, 100);
         }
 
         private void LChannelWeight_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var s = ((Convert.ToInt32(LChannelWeight.Content.ToString()) + 1) % 100).ToString();
-            LChannelWeight.Content = (s == "0") ? "1" : s;
+            var s = ((Convert.ToInt32(LChannelWeightValue.Content.ToString()) + 1) % 100).ToString();
+            LChannelWeightValue.Content = (s == "0") ? "1" : s;
         }
 
         private void LChannelWeight_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var s = (Convert.ToInt32(LChannelWeight.Content.ToString()) - 1).ToString();
-            LChannelWeight.Content = (s == "0") ? "99" : s;
+            var s = (Convert.ToInt32(LChannelWeightValue.Content.ToString()) - 1).ToString();
+            LChannelWeightValue.Content = (s == "0") ? "99" : s;
         }
 
         private void LChannelCapacity_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var s = ((Convert.ToInt32(LChannelCapacity.Content.ToString()) + 1) % 100).ToString();
-            LChannelCapacity.Content = (s == "0") ? "1" : s;
+            var s = ((Convert.ToInt32(LChannelCapacityValue.Content.ToString()) + 1) % 100).ToString();
+            LChannelCapacityValue.Content = (s == "0") ? "1" : s;
         }
 
         private void LChannelCapacity_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var s = (Convert.ToInt32(LChannelCapacity.Content.ToString()) - 1).ToString();
-            LChannelCapacity.Content = (s == "0") ? "99" : s;
+            var s = (Convert.ToInt32(LChannelCapacityValue.Content.ToString()) - 1).ToString();
+            LChannelCapacityValue.Content = (s == "0") ? "99" : s;
         }
     }
 }
