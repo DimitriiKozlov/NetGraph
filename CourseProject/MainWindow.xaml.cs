@@ -292,7 +292,6 @@ namespace CourseProject
         {
             var random = new Random();
             LChannelWeight.Content = random.Next(1, 100);
-            //
         }
 
         private void BRandomLChannelCapacity_Click(object sender, RoutedEventArgs e)

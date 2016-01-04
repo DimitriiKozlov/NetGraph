@@ -106,82 +106,81 @@ namespace CourseProject
             return -1;
         }
 
-        //public List<int> GetConnectedNodeId(int id)
-        //{
-        //    return GetNodeEdges(id).Select(e => e.IdVertex1 == id ? e.IdVertex2 : e.IdVertex1).ToList();
-        //}
+        public List<int> GetConnectedNodeId(int id)
+        {
+            return GetNodeEdges(id).Select(e => e.IdVertex1 == id ? e.IdVertex2 : e.IdVertex1).ToList();
+        }
 
-        //public List<int> GetWayToNode(int id)
-        //{
-        //    var way = new List<int>();
+        public List<int> GetWayToNode(int id, int findId)
+        {
+            var way = new List<int>();
 
-        //    foreach (var node in Nodes)
-        //        node.Label = int.MaxValue;
+            foreach (var node in Nodes)
+                node.Label = int.MaxValue;
 
+            return Dextra(id, way, findId) <= int.MaxValue ? way : null;
+        }
 
+        private int Dextra(int id, List<int> way, int findId)
+        {
+            var lst = GetNodeEdges(id);
+            var currentWeight = Nodes[GetNum(id)].Label;
+            var childId = new List<int>();
+            var countOfNotVisitedChild = 0;
 
-        //}
+            foreach (var edge in lst)
+            {
+                var i = GetNum(edge.IdVertex1 == id ? edge.IdVertex2 : edge.IdVertex1);
 
-        //private int dextra(int id, List<int> way, int findId)
-        //{
-        //    var lst = GetNodeEdges(id);
-        //    var currentWeight = Nodes[GetNum(id)].Label;
-        //    var childId = new List<int>();
-        //    var countOfNotVisitedChild = 0;
+                if (Nodes[i].Visited)
+                    continue;
 
-        //    foreach (var edge in lst)
-        //    {
-        //        var i = GetNum(edge.IdVertex1 == id ? edge.IdVertex2 : edge.IdVertex1);
+                Nodes[i].Label = Nodes[i].Label > currentWeight + edge.ChannelWeight
+                    ? currentWeight + edge.ChannelWeight
+                    : Nodes[i].Label;
+                countOfNotVisitedChild++;
+                if (Nodes[i].Id == findId)
+                    return Nodes[i].Label;
+            }
 
-        //        if (Nodes[i].Visited)
-        //            continue;
+            if (countOfNotVisitedChild == 0)
+                return int.MaxValue;
 
-        //        Nodes[i].Label = Nodes[i].Label > currentWeight + edge.ChannelWeight
-        //            ? currentWeight + edge.ChannelWeight
-        //            : Nodes[i].Label;
-        //        countOfNotVisitedChild++;
-        //        if (Nodes[i].Id == findId)
-        //            return Nodes[i].Label;
-        //    }
+            while (lst.Count > 0)
+            {
+                var iMin = 0;
+                for (var i = 1; i < lst.Count; i++)
+                {
+                    var ind = GetNum(lst[i].IdVertex1 == id ? lst[i].IdVertex2 : lst[i].IdVertex1);
+                    if (Nodes[ind].Label < Nodes[i].Label)
+                        iMin = i;
+                }
 
-        //    if (countOfNotVisitedChild == 0)
-        //        return int.MaxValue;
+                childId.Add(Nodes[iMin].Id);
+                lst.RemoveAt(0);
+            }
 
-        //    while (lst.Count > 0)
-        //    {
-        //        var iMin = 0;
-        //        for (var i = 1; i < lst.Count; i++)
-        //        {
-        //            var ind = GetNum(lst[i].IdVertex1 == id ? lst[i].IdVertex2 : lst[i].IdVertex1);
-        //            if (Nodes[ind].Label < Nodes[i].Label)
-        //                iMin = i;
-        //        }
+            way.Add(id);
+            var fastWay = int.MaxValue;
+            var shortTempWay = new List<int>();
 
-        //        childId.Add(Nodes[iMin].Id);
-        //        lst.RemoveAt(0);
-        //    }
+            foreach (var i in childId)
+            {
+                Nodes[GetNum(i)].Visited = true;
+                var tempWay = new List<int>();
+                var childWay = Dextra(i, tempWay, findId);
 
-        //    way.Add(id);
-        //    var fastWay = int.MaxValue;
-        //    var shortTempWay = new List<int>();
+                if (childWay >= fastWay) continue;
 
-        //    foreach (var i in childId)
-        //    {
-        //        Nodes[GetNum(i)].Visited = true;
-        //        var tempWay = new List<int>();
-        //        var childWay = dextra(i, tempWay, findId);
+                fastWay = childWay;
+                shortTempWay = tempWay;
+            }
 
-        //        if (childWay >= fastWay) continue;
+            if (shortTempWay.Count == 0)
+                return int.MaxValue;
 
-        //        fastWay = childWay;
-        //        shortTempWay = tempWay;
-        //    }
-
-        //    if (shortTempWay.Count == 0)
-        //        return int.MaxValue;
-
-        //    way.AddRange(shortTempWay);
-        //    return fastWay;
-        //}
+            way.AddRange(shortTempWay);
+            return fastWay;
+        }
     }
 }
