@@ -323,5 +323,23 @@ namespace CourseProject
             var s = (Convert.ToInt32(LChannelCapacityValue.Content.ToString()) - 1).ToString();
             LChannelCapacityValue.Content = (s == "0") ? "99" : s;
         }
+
+        private void BRandomMessageSizeValue_Click(object sender, RoutedEventArgs e)
+        {
+            var random = new Random();
+            LMessageSizeValue.Content = random.Next(1, 100);
+        }
+
+        private void LMessageSizeValue_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var s = ((Convert.ToInt32(LMessageSizeValue.Content.ToString()) + 1) % 100).ToString();
+            LMessageSizeValue.Content = (s == "0") ? "1" : s;
+        }
+
+        private void LMessageSizeValue_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var s = (Convert.ToInt32(LMessageSizeValue.Content.ToString()) - 1).ToString();
+            LMessageSizeValue.Content = (s == "0") ? "99" : s;
+        }
     }
 }
