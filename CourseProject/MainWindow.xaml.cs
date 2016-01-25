@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,16 +24,14 @@ namespace CourseProject
         readonly Graph _graph = new Graph();
         private int _moveIndex = -1;
         private int _removeIndex = -1;
+        private Message _message;
+
+        //readonly Message _message = new Message();
         //private bool _addEdge;
 
         private void Grid_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             var p = new Point(e.GetPosition(CanvasForm).X - Node.DefaultRadius * 0.5, e.GetPosition(CanvasForm).Y - Node.DefaultRadius * 0.5);
-            //if (p.X < 0)
-            //{
-            //    _moveIndex = -1;
-            //    return;
-            //}
 
             var index = _graph.GetNum(p);
 
@@ -297,7 +298,7 @@ namespace CourseProject
         private void BRandomLChannelCapacity_Click(object sender, RoutedEventArgs e)
         {
             var random = new Random();
-            LChannelCapacityValue.Content = random.Next(1, 100);
+            LChannelCapacityValue.Content = random.Next(Message.MessageBlockSize, 10000);
         }
 
         private void LChannelWeight_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -314,32 +315,215 @@ namespace CourseProject
 
         private void LChannelCapacity_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var s = ((Convert.ToInt32(LChannelCapacityValue.Content.ToString()) + 1) % 100).ToString();
-            LChannelCapacityValue.Content = (s == "0") ? "1" : s;
+            var s = ((Convert.ToInt32(LChannelCapacityValue.Content.ToString()) + 1) % 10000).ToString();
+            LChannelCapacityValue.Content = (s == "0") ? Message.MessageBlockSize.ToString() : s;
         }
 
         private void LChannelCapacity_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             var s = (Convert.ToInt32(LChannelCapacityValue.Content.ToString()) - 1).ToString();
-            LChannelCapacityValue.Content = (s == "0") ? "99" : s;
+            LChannelCapacityValue.Content = (s == Message.MessageBlockSize.ToString()) ? "9999" : s;
         }
 
         private void BRandomMessageSizeValue_Click(object sender, RoutedEventArgs e)
         {
             var random = new Random();
-            LMessageSizeValue.Content = random.Next(1, 100);
+            LMessageSizeValue.Content = random.Next(Message.MessageBlockSize, Message.MessageMaxSize);
         }
 
         private void LMessageSizeValue_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var s = ((Convert.ToInt32(LMessageSizeValue.Content.ToString()) + 1) % 100).ToString();
-            LMessageSizeValue.Content = (s == "0") ? "1" : s;
+            var s = ((Convert.ToInt32(LMessageSizeValue.Content.ToString()) + 1) % Message.MessageMaxSize).ToString();
+            LMessageSizeValue.Content = (s == "0") ? Message.MessageBlockSize.ToString() : s;
         }
 
         private void LMessageSizeValue_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             var s = (Convert.ToInt32(LMessageSizeValue.Content.ToString()) - 1).ToString();
-            LMessageSizeValue.Content = (s == "0") ? "99" : s;
+            LMessageSizeValue.Content = (s == Message.MessageBlockSize.ToString()) ? Message.MessageMaxSize.ToString() : s;
+        }
+
+        private void LMessageFromValue_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if ("--" == LMessageFromValue.Content.ToString())
+            {
+                LMessageFromValue.Content = (_graph.Nodes.Count <= 0) ? "--" : _graph.Nodes[0].Id.ToString();
+                return;
+            }
+
+            LMessageFromValue.Content = (_graph.Nodes[(_graph.GetNum(Convert.ToInt32(LMessageFromValue.Content.ToString())) + 1) % _graph.Nodes.Count].Id).ToString();
+        }
+
+        private void LMessageFromValue_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if ("--" == LMessageFromValue.Content.ToString())
+            {
+                LMessageFromValue.Content = (_graph.Nodes.Count <= 0) ? "--" : _graph.Nodes[0].Id.ToString();
+                return;
+            }
+
+            LMessageFromValue.Content = (_graph.Nodes[(_graph.GetNum(Convert.ToInt32(LMessageFromValue.Content.ToString())) + _graph.Nodes.Count - 1) % _graph.Nodes.Count].Id).ToString();
+        }
+
+        private void LMessageToValue_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if ("--" == LMessageToValue.Content.ToString())
+            {
+                LMessageToValue.Content = (_graph.Nodes.Count <= 0) ? "--" : _graph.Nodes[0].Id.ToString();
+                return;
+            }
+
+            LMessageToValue.Content = (_graph.Nodes[(_graph.GetNum(Convert.ToInt32(LMessageToValue.Content.ToString())) + 1) % _graph.Nodes.Count].Id).ToString();
+        }
+
+        private void LMessageToValue_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if ("--" == LMessageToValue.Content.ToString())
+            {
+                LMessageToValue.Content = (_graph.Nodes.Count <= 0) ? "--" : _graph.Nodes[0].Id.ToString();
+                return;
+            }
+
+            LMessageToValue.Content = (_graph.Nodes[(_graph.GetNum(Convert.ToInt32(LMessageToValue.Content.ToString())) + _graph.Nodes.Count - 1) % _graph.Nodes.Count].Id).ToString();
+        }
+
+        private void BSend_Click(object sender, RoutedEventArgs e)
+        {
+            if ((LMessageFromValue.Content.ToString() == "--") || (LMessageToValue.Content.ToString() == "--"))
+                return;
+
+            _message = new Message(Convert.ToInt32(LMessageSizeValue.Content.ToString()), CBDatagram.IsChecked != null && CBDatagram.IsChecked.Value);
+
+            PbSend.Maximum = _message.Size;
+            PbSend.Value = 0;
+
+            BSendFinish.IsEnabled = true;
+            BSendNext.IsEnabled = true;
+            BSendPlay.IsEnabled = true;
+            BSendReset.IsEnabled = true;
+            BSend.IsEnabled = false;
+        }
+
+        private void BPowerAverageRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            if (_graph.Nodes.Count == 0)
+            {
+                LPowerAverageValue.Content = "0";
+                return;
+            }
+
+            LPowerAverageValue.Content = ((double)2*_graph.Edges.Count/_graph.Nodes.Count).ToString(CultureInfo.InvariantCulture);
+        }
+
+        private void BSendNext_Click(object sender, RoutedEventArgs e)
+        {
+            _graph.RestoreEdgeCapacity();
+            for (var i = 0; i < _message.PackagesList.Count; i++)
+            {
+                var packagese = _message.PackagesList[i];
+
+                if (packagese.WaitForAnswer)
+                {
+                    packagese.WaitForAnswer = false;
+                    continue;
+                }
+                packagese.WaitForAnswer = true;
+
+                if (packagese.IdNext == -1)
+                {
+                    var waySet = _graph.GetWayToNode(Convert.ToInt32(LMessageFromValue.Content.ToString()),
+                        Convert.ToInt32(LMessageToValue.Content.ToString()), packagese.Size);
+                    if (waySet == null)
+                        continue;
+                    packagese.SetWay(waySet);
+                    packagese.WaitForAnswer = true;
+                    continue;
+                }
+
+
+                if (packagese.IsDatagtam)
+                {
+                    var edgeDG =
+                       (_graph.GetNodeEdges(packagese.Id)
+                           .Where(
+                               edg =>
+                                   ((edg.IdVertex1 == packagese.Id) && (edg.IdVertex2 == packagese.IdNext)) ||
+                                   ((edg.IdVertex1 == packagese.IdNext) && (edg.IdVertex2 == packagese.Id)))).ToList()[0];
+                    if (edgeDG.CurentCapacity >= packagese.Size)
+                    {
+                        edgeDG.CurentCapacity -= packagese.Size;
+
+                        //if (packagese.WaitForAnswer)
+                        //{
+                        //    packagese.WaitForAnswer = false;
+                        //    continue;
+                        //}
+                        //packagese.WaitForAnswer = true;
+                        if (packagese.Next())
+                        {
+                            PbSend.Value += packagese.Size;
+                            _message.PackagesList.RemoveAt(i--);
+                        }
+                    }
+                    continue;
+                }
+
+                var way = _graph.GetWayToNode(packagese.Id, Convert.ToInt32(LMessageToValue.Content.ToString()),
+                    packagese.Size);
+
+                if (way == null) continue;
+                var edge =
+                    (_graph.GetNodeEdges(packagese.Id)
+                        .Where(
+                            edg =>
+                                ((edg.IdVertex1 == way[0]) && (edg.IdVertex2 == way[1])) ||
+                                ((edg.IdVertex1 == way[1]) && (edg.IdVertex2 == way[0])))).ToList()[0];
+                edge.CurentCapacity -= packagese.Size;
+
+                //if (packagese.WaitForAnswer)
+                //{
+                //    packagese.WaitForAnswer = false;
+                //    continue;
+                //}
+                //packagese.WaitForAnswer = true;
+                if (!packagese.Next(way)) continue;
+                PbSend.Value += packagese.Size;
+                _message.PackagesList.RemoveAt(i--);
+            }
+
+            textBox1.Text = "Num\tFrom\tTo\tServer\tSize\n";
+            for (var i = 0; i < _message.PackagesList.Count; i++)
+                textBox1.Text += i.ToString() + '\t' + _message.PackagesList[i].Id.ToString() + '\t' + _message.PackagesList[i].IdNext.ToString() + '\t' + _message.PackagesList[i].WaitForAnswer.ToString() + '\t' + _message.PackagesList[i].Size + '\n';
+        }
+
+        private async void BSendPlay_Click(object sender, RoutedEventArgs e)
+        {
+            while (_message.PackagesList.Count > 0)
+            {
+                await Task.Delay(50);
+                BSendNext_Click(sender, e);
+            }
+        }
+
+        private void BSendFinish_Click(object sender, RoutedEventArgs e)
+        {
+            while (_message.PackagesList.Count > 0)
+                BSendNext_Click(sender, e);
+        }
+
+        private void BSendReset_Click(object sender, RoutedEventArgs e)
+        {
+            LMessageFromValue.Content = "--";
+            LMessageToValue.Content = "--";
+
+            PbSend.Maximum = 100;
+            PbSend.Value = 0;
+
+            BSendFinish.IsEnabled = false;
+            BSendNext.IsEnabled = false;
+            BSendPlay.IsEnabled = false;
+            BSendReset.IsEnabled = false;
+            BSend.IsEnabled = true;
         }
     }
 }

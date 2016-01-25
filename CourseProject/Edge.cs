@@ -10,6 +10,7 @@
 
         public int ChannelWeight;
         public int ChannelCapacity;
+        public int CurentCapacity;
 
         public Edge(int idV1, int idV2, int chId, int weight, int capacity, string text = "")
         {
@@ -21,6 +22,7 @@
 
             ChannelWeight = weight;
             ChannelCapacity = capacity;
+            CurentCapacity = capacity;
         }
     }
 }
